@@ -1,0 +1,8 @@
+/wandb/
+/data/
+/checkpoints/
+/src/__pycache__/
+/src/nn/__pycache__/
+/src/train/__pycache__/
+/src/utils/__pycache__/
+/datasets/__pycache__/

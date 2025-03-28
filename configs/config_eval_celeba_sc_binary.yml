@@ -1,0 +1,32 @@
+dataset:
+  name: color_mnist
+  root: './data'
+  attr: # If None, we select all
+
+model:
+  likelihood: 'gauss'
+  type_encoder: 'dcgan'
+  type_decoder: 'cnnskip'
+  beta: 15
+  n_concepts: 12
+  concept_inf: 'rep'   # 'rep' (repetition codes) or 'uncoded'
+  sc_type: 'binary'         # If None, we do not include a side channel
+  sc_inf:              # If binary, indicate 'rep' or 'uncoded'. If sc_type='continuous' or sc_type=None, this will be ignored (can be None)
+  sc_dim:                   # If sc_type=None, this will be ignored (can be None)
+
+concept_code:
+  path: './repetition_codes/rep_matrices_12_360.pkl'   # This will be ignored if concept_inf_type='uncoded'.
+
+# This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
+sc_code:
+  path: './repetition_codes/rep_matrices_12_360.pkl'  # This will be ignored if sc_inf_type='uncoded'.
+
+gpu: True
+
+checkpoint:
+  path: '/checkpoints/confounded-color-mnist_coded_100_epoch.pt'
+
+log:
+  wandb: False
+  wandb_project: 'coded_cbgm'
+  wandb_user: 'mariamartinezga'
