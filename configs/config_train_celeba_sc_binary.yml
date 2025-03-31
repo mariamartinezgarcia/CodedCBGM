@@ -28,7 +28,7 @@ sc_code:
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 train:
-  n_epochs: 200
+  n_epochs: 1
   batch_size: 128
   lr: 0.00001
   n_samples: 10
@@ -36,12 +36,12 @@ train:
   train_dec: True
   w_concept: 100
   w_orth: 20
-  save: False
+  save: True
   
 gpu: True
 
 checkpoint:
-  path: '/checkpoints/celeba_sc_continuous_200_epoch.pt'
+  path: './checkpoints/celeba_sc_continuous_200_epoch.pt'
 
 log:
   wandb: False

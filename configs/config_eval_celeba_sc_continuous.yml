@@ -24,7 +24,7 @@ sc_code:
 gpu: True
 
 checkpoint:
-  path: '/checkpoints/confounded-color-mnist_coded_100_epoch.pt'
+  path: './checkpoints/confounded-color-mnist_coded_100_epoch.pt'
 
 log:
   wandb: False

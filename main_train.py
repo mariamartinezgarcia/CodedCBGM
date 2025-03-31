@@ -38,7 +38,7 @@ def main():
 
     with open(args.config, "r") as stream:
         cfg = yaml.safe_load(stream)
-    print(f"Loaded configuration file {args.config_file}")
+    print(f"Loaded configuration file {args.config}")
 
     # --- Read Configuration File --- #
     # Dataset
@@ -104,7 +104,7 @@ def main():
     G_concept=None
     if concept_inf == 'rep':
 
-        assert n_concepts != concept_bits_info, "The number of 'concept' information bits must be equal to the number of concepts."
+        assert n_concepts == concept_bits_info, "The number of 'concept' information bits must be equal to the number of concepts."
 
         # Load matrices
         if concept_code_file == 'default':

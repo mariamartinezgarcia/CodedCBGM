@@ -41,7 +41,7 @@ train:
 gpu: True
 
 checkpoint:
-  path: '/checkpoints/celeba_sc_continuous_200_epoch.pt'
+  path: './checkpoints/celeba_sc_continuous_200_epoch.pt'
 
 log:
   wandb: False
