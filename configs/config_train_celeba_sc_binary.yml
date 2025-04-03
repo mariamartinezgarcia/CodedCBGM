@@ -16,7 +16,7 @@ model:
 
 concept_code:
   bits_info: 40
-  bits_code: 400
+  bits_code: 800
   root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
@@ -41,7 +41,7 @@ train:
 gpu: True
 
 checkpoint:
-  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_binary_10-100_wconcept_500_200_epoch_conduit.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_4-800_sc_binary_10-100_wconcept_500_200_epoch_conduit.pt'
 
 log:
   wandb: True

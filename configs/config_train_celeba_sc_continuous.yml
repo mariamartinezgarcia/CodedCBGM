@@ -16,14 +16,14 @@ model:
 
 concept_code:
   bits_info: 40
-  bits_code: 400
+  bits_code: 800
   root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 # This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
 sc_code:
-  bits_info: 8
-  bits_code: 80
+  bits_info: 1
+  bits_code: 1
   root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
@@ -41,7 +41,7 @@ train:
 gpu: True
 
 checkpoint:
-  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_continuous_64_whitening_wconcept_500_200_epoch_conduit.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_40-800_sc_continuous_64_whitening_wconcept_500_200_epoch_conduit.pt'
 
 log:
   wandb: True
