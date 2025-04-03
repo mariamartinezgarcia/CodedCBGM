@@ -109,7 +109,7 @@ class CBCodedVAE(nn.Module):
         self.decoder = Decoder(dec)
         self.whitening = None
         if self.sc_type == 'continuous':
-            self.whitening = IterNorm(self.bits_code_concept+sc_dim, affine=False).to(self.device)
+            self.whitening = IterNorm(self.bits_code_concept+sc_dim, affine=False)
 
         # Optimizers
         self.optimizer_encoder = optim.Adam(self.encoder.parameters(), lr=lr, weight_decay=weight_decay)
