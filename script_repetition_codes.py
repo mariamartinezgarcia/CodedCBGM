@@ -2,8 +2,8 @@ import torch
 import pickle
 
 # Set the parameters
-num_rows = 12
-num_cols = 360
+num_rows = 40
+num_cols = 800
 num_repetitions = int(num_cols/num_rows)
 
 # Create the repetition code matrix

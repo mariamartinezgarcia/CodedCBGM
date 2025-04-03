@@ -1,6 +1,6 @@
 dataset:
   name: celeba
-  root: '/export/gts_usuarios/mariamartinezga/data'
+  root: '/home/martinez-garcia/data/'
   attr: # If None, we select all
 
 model:
@@ -12,7 +12,7 @@ model:
   concept_inf: 'rep'   # 'rep' (repetition codes) or 'uncoded'
   sc_type: 'binary'         # If None, we do not include a side channel
   sc_inf: 'rep'           # If binary, indicate 'rep' or 'uncoded'. If sc_type='continuous' or sc_type=None, this will be ignored (can be None)
-  sc_dim: 8               # If sc_type=None, this will be ignored (can be None)
+  sc_dim: 10               # If sc_type=None, this will be ignored (can be None)
 
 concept_code:
   bits_info: 40
@@ -22,8 +22,8 @@ concept_code:
 
 # This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
 sc_code:
-  bits_info: 8
-  bits_code: 80
+  bits_info: 10
+  bits_code: 100
   root: './repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
@@ -34,14 +34,14 @@ train:
   n_samples: 10
   train_enc: True
   train_dec: True
-  w_concept: 100
-  w_orth: 20
+  w_concept: 500
+  w_orth: 0
   save: True
   
 gpu: True
 
 checkpoint:
-  path: './checkpoints/celeba_sc_binary_8-80_200_epoch.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_binary_10-100_wconcept_500_200_epoch_conduit.pt'
 
 log:
   wandb: True
