@@ -1,6 +1,6 @@
 dataset:
   name: celeba
-  root: '/export/gts_usuarios/mariamartinezga/data'
+  root: '/home/martinez-garcia/data/celeba'
   attr: # If None, we select all
 
 model:
@@ -17,14 +17,14 @@ model:
 concept_code:
   bits_info: 40
   bits_code: 400
-  root: './repetition_codes/'
+  root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 # This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
 sc_code:
   bits_info: 8
   bits_code: 80
-  root: './repetition_codes/'
+  root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 train:
@@ -34,14 +34,14 @@ train:
   n_samples: 10
   train_enc: True
   train_dec: True
-  w_concept: 100
-  w_orth: 20
+  w_concept: 500
+  w_orth: 0
   save: True
   
 gpu: True
 
 checkpoint:
-  path: './checkpoints/celeba_sc_continuous_200_epoch.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_continuous_64_whitening_200_epoch_conduit.pt'
 
 log:
   wandb: False
