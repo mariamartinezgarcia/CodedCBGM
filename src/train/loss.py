@@ -314,7 +314,7 @@ def infer_and_sample_side_channel(encoder_out, type='continuous', inf=None, beta
     return sc_probs, sc_sample
 
 
-def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_inf='uncoded', sc_type="continuous", sc_inf=None, G_concept=None, H_concept=None, G_sc=None, H_sc=None, likelihood='gauss', n_samples=1):
+def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_inf='uncoded', sc_type="continuous", sc_inf=None, G_concept=None, H_concept=None, G_sc=None, H_sc=None, likelihood='gauss', n_samples=1, whitening=None):
 
     """
     Compute the losses for training, i.e., the ELBO, concept loss and orthogonality loss.
@@ -360,6 +360,8 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
             - 'ber': Bernoulli likelihood.
         n_samples: int, optional
             Number of samples used to estimate the ELBO. Default to 1.
+        whitening: IterNorm instance, optional
+            Whitening module used to normalize the latent representation. Default None.
 
     Returns
         -------
@@ -412,15 +414,7 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
 
 
     # Compute the reconstruction term E_{q(z|x)}[log p(x|z)] and orthogonality loss (only computed in the continuous side channel case
-
-    # Whitening Module
-    latent_dim = None
-    if z_sc is None:
-        latent_dim = z_concept.shape[1]
-    else:
-        latent_dim = z_concept.shape[1] + z_sc.shape[1]
-    withening = IterNorm(latent_dim, affine=False).to(x_flat.device)
-
+    
     reconstruction_sum = 0
     orth_sum = torch.tensor(0.).to(encoder_out.device)
 
@@ -433,8 +427,8 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
         
         # Forward decoder
         n_sample = latent_sample[:,:,n]
-        if sc_type == 'continuous':
-            n_sample = withening(n_sample.view(n_sample.shape[0], n_sample.shape[1]))
+        if (sc_type == 'continuous') and (whitening is not None):
+            n_sample = whitening(n_sample.view(n_sample.shape[0], n_sample.shape[1]))
         #out_decoder = decoder.forward(latent_sample).view(-1, x_flat.shape[1])
         out_decoder = decoder.forward(n_sample).view(-1, x_flat.shape[1])
 

@@ -48,7 +48,7 @@ def train_step(model, x, concepts, n_samples=1, train_enc=True, train_dec=True, 
     model.optimizer_encoder.zero_grad()
     model.optimizer_decoder.zero_grad()
 
-    # Compute ELBO loss
+    # Compute losses
     elbo, concept_loss, orth_loss, kl_div_concepts, kl_div_sc, reconstruction = get_losses(
         x, 
         concepts, 
@@ -63,7 +63,8 @@ def train_step(model, x, concepts, n_samples=1, train_enc=True, train_dec=True, 
         G_sc=model.G_sc, 
         H_sc=model.H_sc,
         likelihood=model.likelihood, 
-        n_samples=n_samples
+        n_samples=n_samples,
+        whitening=model.whitening,
         )
 
     # Sanity check

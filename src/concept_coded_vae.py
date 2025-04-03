@@ -9,6 +9,7 @@ from src.utils.sampling import sample_from_qz_given_x, sample_from_qc_given_x, m
 from src.train.loss import compute_word_logprobs
 from src.train.train import trainloop
 from src.utils.functions import check_args, set_random_seed
+from src.nn.iternorm import IterNorm
 
 
 
@@ -106,6 +107,9 @@ class CBCodedVAE(nn.Module):
         self.encoder = Encoder(enc, self.bits_code_concept, sc_type=self.sc_type)
         # Decoder
         self.decoder = Decoder(dec)
+        self.whitening = None
+        if self.sc_type == 'continuous':
+            self.whitening = IterNorm(self.bits_code_concept+sc_dim, affine=False).to(self.device)
 
         # Optimizers
         self.optimizer_encoder = optim.Adam(self.encoder.parameters(), lr=lr, weight_decay=weight_decay)

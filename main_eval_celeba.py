@@ -1,29 +1,35 @@
+import torch
+from torchvision import datasets, transforms
+import numpy as np
+import itertools
+import matplotlib.pyplot as plt
+
+import random
+
+from torch import nn
+
+import wandb
+import pickle
 import argparse
 import yaml
 import os
 
-import torch
-
-import os
-import itertools
-import pickle
-import wandb
-import yaml
-
 import src.nn.modules as modules
 from src.concept_coded_vae import CBCodedVAE
-from datasets.color_mnist import get_confounded_color_mnist, get_color_mnist
-from datasets.celeba import get_celeba_dataloader
+from datasets.color_mnist import get_confounded_color_mnist
+from datasets.celeba import get_celeba_dataloader, CelebASubset
 
-#WANDB CONFIGURATIONS FOR CLUSTER
-os.environ["WANDB__SERVICE_WAIT"] = "300"
-os.environ['SSL_CERT_DIR'] = '/etc/ssl/certs'
-os.environ['REQUESTS_CA_BUNDLE'] = '/etc/ssl/certs/ca-certificates.crt'
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 
 def main():
+    # --- Random Seed --- #
+    g = torch.Generator()
+    g.manual_seed(0)
+
     # We only specify the yaml file from argparse and handle rest
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-c", "--config", help="path to configuration file")
@@ -60,20 +66,11 @@ def main():
     sc_bits_code = cfg['sc_code']['bits_code']
     # Checkpoint
     checkpoint_path = cfg['checkpoint']['path']
-    # Train
-    n_epochs = cfg['train']['n_epochs']
-    batch_size = cfg['train']['batch_size']
-    lr = cfg['train']['lr']
-    n_samples = cfg['train']['n_samples']
-    train_enc = cfg['train']['train_enc']
-    train_dec = cfg['train']['train_dec']
-    w_concept = cfg['train']['w_concept']
-    w_orth =  cfg['train']['w_orth']
-    save_model = cfg['train']['save']
     # Log
     wb = cfg['log']['wandb']
     wb_project = cfg['log']['wandb_project']
     wb_user = cfg['log']['wandb_user']
+
     # GPU
     use_cuda = cfg['gpu'] and torch.cuda.is_available()
     if use_cuda:
@@ -81,15 +78,16 @@ def main():
     else:
         device = torch.device("cpu")
 
+
     # --- Debug --- #
     torch.autograd.set_detect_anomaly(True)
 
     # --- Dataset --- #
     if dataset == 'celeba':
-        trainloader, attr_names, attr_indices = get_celeba_dataloader(root_dir=dataset_root, selected_attributes=selected_attr, batch_size=batch_size, image_size=64, split='train', num_workers=4)
+        testloader, attr_names, attr_indices = get_celeba_dataloader(root_dir=dataset_root, selected_attributes=selected_attr, batch_size=128, image_size=64, split='test', num_workers=4)
 
     if dataset == 'color_mnist':
-        trainloader = get_confounded_color_mnist(root=dataset_root,  batch_size=128, istesting=False)
+        testloader = get_confounded_color_mnist(root=dataset_root,  batch_size=128, istesting=False)
         attr_names = None 
         attr_indices = None
 
@@ -97,12 +95,9 @@ def main():
     # Concepts
     G_concept=None
     if concept_inf == 'rep':
-
-        assert n_concepts == concept_bits_info, "The number of 'concept' information bits must be equal to the number of concepts."
-
         # Load matrices
         if concept_code_file == 'default':
-            concept_code_path = os.path.join(concept_code_root, 'rep_matrices_'+str(n_concepts)+'_'+str(concept_bits_code)+'.pkl')
+            concept_code_path = os.path.join(concept_code_root, 'rep_matrices_'+str(concept_bits_info)+'_'+str(concept_bits_code)+'.pkl')
         else:
             concept_code_path = os.path.join(concept_code_root, concept_code_file)
         
@@ -124,6 +119,7 @@ def main():
             rep_matrices = pickle.load(file)
 
         G_sc = rep_matrices['G']
+
 
     # ---- Obtain Codebook ---- #
     if concept_bits_info<15:
@@ -158,6 +154,7 @@ def main():
                 config=cfg
             )
 
+
     # ---- Get encoder and decoder networks---- #
     if sc_type is None:
         enc = modules.get_encoder(type_encoder, concept_bits_code, dataset)
@@ -187,30 +184,133 @@ def main():
         G_concept=G_concept,
         G_sc=G_sc,
         beta=beta,
-        lr=lr,
         seed=0,
         ) 
 
-    # ---- Train ---- #
-    elbo_evol, concept_evol, orth_evol, kl_concept_evol, kl_sc_evol, rec_evol = model.train(
-        trainloader, 
-        n_epochs=n_epochs, 
-        n_samples=n_samples,
-        train_enc=train_enc, 
-        train_dec=train_dec,
-        w_concept=w_concept,
-        w_orth=w_orth,
-        wb=wb
-        )
+    # Load pre-trained model
+    checkpoint = torch.load(checkpoint_path, map_location=model.device)
+    model.load_state_dict(checkpoint)
+    print('Model loaded!')
 
-    if save_model:
-        model.save(checkpoint_path)
-        print('Model saved!')
+    # Evaluation mode
+    model.encoder.eval()
+    model.decoder.eval()
+
+    # ---- Reconstruction ---- #
+    with torch.no_grad():
+
+        # 1. Obtain a batch of test data
+        images, concepts = next(iter(testloader))
+        # 2. Forward model
+        latent_sample, concept_probs, reconstructed = model.forward(images)
+        # 3. Plot reconstructed images
+        images=images*0.5 + 0.5
+        reconstructed=reconstructed*0.5 + 0.5
+        fig, axes = plt.subplots(nrows=2, ncols=20, sharex=True, sharey=True, figsize=(40,4))
+        for i in range(20):
+            axes[0,i].imshow(np.transpose(images[i], (1,2,0)))
+            axes[0,i].axis('off')
+            axes[1,i].imshow(np.transpose(reconstructed[i].cpu().data.numpy(), (1,2,0)))
+            axes[1,i].axis('off')
+        
+        plt.tight_layout(pad=0.00)
+
+        # W&B
+        if wb:
+            wandb.log({"reconstructed": fig})
+            wandb.log({"m_probs_reconstructed": concept_probs.detach().cpu().numpy()})
+
+        plt.close(fig)
+
+    torch.cuda.empty_cache()
+
+    # ---- Reconstruction BCE ---- #
+    with torch.no_grad():
+        #BCE Loss
+        bce = nn.BCELoss(reduction='None')
+        bce_sum = 0
+        for x, concepts in testloader:
+            _, concept_probs, _ = model.forward(x)
+            bce_batch = bce(concept_probs, concepts.type(torch.FloatTensor).to(concept_probs.device))
+            bce_sum += torch.mean(bce_batch, dim=1)
+
+        bce_final = bce_sum.item()/len(testloader)
+
+        # W&B
+        if wb:
+            wandb.log({"BCE TEST PER CONCEPT": bce_final})
+            wandb.log({"BCE TEST": torch.mean(bce_final)})
+
+    torch.cuda.empty_cache()
+
+    # ---- Generation ---- #
+    with torch.no_grad():
+
+        # 1. Generate random images
+        generated_imgs, generated_concepts = model.generate(n_samples=100)
+        generated_imgs=generated_imgs*0.5 + 0.5
+        # 2. Plot generated images
+        fig, axes = plt.subplots(nrows=10, ncols=10, sharex=True, sharey=True, figsize=(20,20))
+        for i in range(10):
+            for j in range(10):
+                ax = axes[i, j]
+                ax.imshow(np.transpose(generated_imgs[i * 10 + j].cpu().data.numpy(), (1,2,0))) 
+                ax.axis('off')
+        plt.tight_layout(pad=0.00)
+
+        # W&B
+        if wb:
+            wandb.log({"generated": fig})
+
+        plt.close(fig)
+
+    torch.cuda.empty_cache()
+
+    # ---- Intervention ---- #
+    with torch.no_grad():
+        for a in attr_names:
+
+            idx = attr_names.index(a)
+            probs_active = torch.ones(n_concepts)*0.5
+            probs_active[idx] = 1.
+            probs_inactive = torch.ones(n_concepts)*0.5
+            probs_inactive[idx] = 0.    
+
+            # Generate images with concept active
+            generated_imgs, generated_concepts = model.generate(n_samples=100, m_probs=probs_active)
+            generated_imgs=generated_imgs*0.5 + 0.5
+            # Plot generated images
+            fig_active, axes_active = plt.subplots(nrows=10, ncols=10, sharex=True, sharey=True, figsize=(20,20))
+            for i in range(10):
+                for j in range(10):
+                    ax = axes_active[i, j]
+                    ax.imshow(np.transpose(generated_imgs[i * 10 + j].cpu().data.numpy(), (1,2,0))) 
+                    ax.axis('off')
+            plt.tight_layout(pad=0.00)
+
+            torch.cuda.empty_cache()
+
+            # Generate images with concept inactive
+            generated_imgs, generated_concepts = model.generate(n_samples=100, m_probs=probs_inactive)
+            generated_imgs=generated_imgs*0.5 + 0.5
+            # Plot generated images
+            fig_inactive, axes_inactive = plt.subplots(nrows=10, ncols=10, sharex=True, sharey=True, figsize=(20,20))
+            for i in range(10):
+                for j in range(10):
+                    ax = axes_inactive[i, j]
+                    ax.imshow(np.transpose(generated_imgs[i * 10 + j].cpu().data.numpy(), (1,2,0))) 
+                    ax.axis('off')
+            plt.tight_layout(pad=0.00)
+
+            torch.cuda.empty_cache()
+
+            # W&B
+            if wb:
+                wandb.log({"generated_"+a+"_active": fig_active})
+                wandb.log({"generated_"+a+"_inactive": fig_inactive})
+
+            plt.close(fig_active)
+            plt.close(fig_inactive)
 
     if wb:  
         wandb.finish()
-
-
-
-if __name__ == "__main__":
-    main()

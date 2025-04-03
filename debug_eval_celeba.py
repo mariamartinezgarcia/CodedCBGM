@@ -223,22 +223,26 @@ with torch.no_grad():
 
 torch.cuda.empty_cache()
 
+
 # ---- Reconstruction BCE ---- #
 with torch.no_grad():
     #BCE Loss
-    bce = nn.BCELoss(reduction='mean')
+    bce = nn.BCELoss(reduction='None')
     bce_sum = 0
     for x, concepts in testloader:
         _, concept_probs, _ = model.forward(x)
-        bce_sum += bce(concept_probs, concepts.type(torch.FloatTensor).to(concept_probs.device))
+        bce_batch = bce(concept_probs, concepts.type(torch.FloatTensor).to(concept_probs.device))
+        bce_sum += torch.mean(bce_batch, dim=1)
 
     bce_final = bce_sum.item()/len(testloader)
 
     # W&B
     if wb:
-        wandb.log({"BCE TEST": bce_final})
+        wandb.log({"BCE TEST PER CONCEPT": bce_final})
+        wandb.log({"BCE TEST": torch.mean(bce_final)})
 
 torch.cuda.empty_cache()
+
 
 # ---- Generation ---- #
 with torch.no_grad():
@@ -309,4 +313,5 @@ with torch.no_grad():
         plt.close(fig_active)
         plt.close(fig_inactive)
 
-
+if wb:  
+    wandb.finish()
