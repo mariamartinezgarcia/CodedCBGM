@@ -30,7 +30,7 @@ g.manual_seed(0)
 
 
 # ---- Configuration ---- #
-with open('./configs/config_train.yml', "r") as file:
+with open('./configs/config_train_celeba_sc_continuous.yml', "r") as file:
     cfg = yaml.safe_load(file)
 
 # --- Read Configuration File --- #
@@ -58,7 +58,7 @@ sc_code_file = cfg['sc_code']['file']
 sc_bits_info = cfg['sc_code']['bits_info']
 sc_bits_code = cfg['sc_code']['bits_code']
 # GPU
-gpu = cfg['gpu']['device']
+gpu = cfg['gpu']
 # Checkpoint
 checkpoint_path = cfg['checkpoint']['path']
 # Train
@@ -77,7 +77,8 @@ wb_project = cfg['log']['wandb_project']
 wb_user = cfg['log']['wandb_user']
 
 # --- GPU --- #
-os.environ["CUDA_VISIBLE_DEVICES"]=str(cfg['gpu']['device'])
+if cfg['gpu']:  
+    os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 # --- Debug --- #
 torch.autograd.set_detect_anomaly(True)

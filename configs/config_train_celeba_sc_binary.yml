@@ -10,9 +10,9 @@ model:
   beta: 15
   n_concepts: 40
   concept_inf: 'rep'   # 'rep' (repetition codes) or 'uncoded'
-  sc_type: 'continuous'         # If None, we do not include a side channel
-  sc_inf:            # If binary, indicate 'rep' or 'uncoded'. If sc_type='continuous' or sc_type=None, this will be ignored (can be None)
-  sc_dim: 400                 # If sc_type=None, this will be ignored (can be None)
+  sc_type: 'binary'         # If None, we do not include a side channel
+  sc_inf: 'rep'           # If binary, indicate 'rep' or 'uncoded'. If sc_type='continuous' or sc_type=None, this will be ignored (can be None)
+  sc_dim: 8               # If sc_type=None, this will be ignored (can be None)
 
 concept_code:
   bits_info: 40
@@ -28,7 +28,7 @@ sc_code:
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 train:
-  n_epochs: 1
+  n_epochs: 200
   batch_size: 128
   lr: 0.00001
   n_samples: 10
@@ -41,9 +41,9 @@ train:
 gpu: True
 
 checkpoint:
-  path: './checkpoints/celeba_sc_continuous_200_epoch.pt'
+  path: './checkpoints/celeba_sc_binary_8-80_200_epoch.pt'
 
 log:
-  wandb: False
+  wandb: True
   wandb_project: 'coded_cbgm'
   wandb_user: 'mariamartinezga'

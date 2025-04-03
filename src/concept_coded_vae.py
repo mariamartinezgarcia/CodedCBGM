@@ -276,7 +276,7 @@ class CBCodedVAE(nn.Module):
         n_samples: int, optional
             Number of samples to generate.
         m_probs: list, optional
-            List with fixed concept pribability vectors. Assume teh first position corresponds to m1, second to m2, and so on.
+            List with fixed concept pribability vectors. 
 
         Returns
         -------
@@ -309,7 +309,7 @@ class CBCodedVAE(nn.Module):
         sc_sample = None
         if self.sc_type == 'continuous':
             # Sample from the side channel
-            sc_sample = torch.randn(n_samples, self.sc_dim).to(self.device)
+            sc_z_sample = torch.randn(n_samples, self.sc_dim).to(self.device)
        
         if self.sc_type == 'binary':
             sc_probs = torch.ones((n_samples, self.sc_dim))*0.5

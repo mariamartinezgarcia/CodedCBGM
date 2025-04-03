@@ -4,6 +4,7 @@ import torch.distributions as dist
 from src.utils.sampling import sample_from_qz_given_x
 from src.nn.modules import dclamp
 import torch.nn.functional as F
+from src.nn.iternorm import IterNorm
 
 
 
@@ -381,7 +382,7 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
     x_flat = x.view(N,-1)
 
     #BCE Loss
-    bce = nn.BCELoss(reduction='sum')
+    bce = nn.BCELoss(reduction='mean')
 
     # Forward encoder
     encoder_out, side_channel = encoder.forward(x)
@@ -410,18 +411,32 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
             kl_div_sc =  kl_div_bernoulli(sc_probs, prior_probs)
 
 
-    # Compute the reconstruction term E_{q(z|x)}[log p(x|z)] and orthogonality loss (only computed in the continuous side channel case)
+    # Compute the reconstruction term E_{q(z|x)}[log p(x|z)] and orthogonality loss (only computed in the continuous side channel case
+
+    # Whitening Module
+    latent_dim = None
+    if z_sc is None:
+        latent_dim = z_concept.shape[1]
+    else:
+        latent_dim = z_concept.shape[1] + z_sc.shape[1]
+    withening = IterNorm(latent_dim, affine=False).to(x_flat.device)
+
     reconstruction_sum = 0
     orth_sum = torch.tensor(0.).to(encoder_out.device)
+
+    if z_sc is None:
+        latent_sample = z_concept[:,:,:]
+    else:
+        latent_sample = torch.cat((z_concept[:,:,:], z_sc[:,:,:]), dim=1)
+
     for n in range(n_samples):
         
         # Forward decoder
-        if z_sc is None:
-            latent_sample = z_concept[:,:,n]
-        else:
-            latent_sample = torch.cat((z_concept[:,:,n], z_sc[:,:,n]), dim=1)
-
-        out_decoder = decoder.forward(latent_sample).view(-1, x_flat.shape[1])
+        n_sample = latent_sample[:,:,n]
+        if sc_type == 'continuous':
+            n_sample = withening(n_sample.view(n_sample.shape[0], n_sample.shape[1]))
+        #out_decoder = decoder.forward(latent_sample).view(-1, x_flat.shape[1])
+        out_decoder = decoder.forward(n_sample).view(-1, x_flat.shape[1])
 
         # Binary observation model
         if likelihood.lower() == 'ber':
@@ -431,8 +446,8 @@ def get_losses(x, concepts, encoder, decoder, prior_bits=0.5, beta=10, concept_i
             covar = torch.ones(out_decoder.shape[1]).to(x_flat.device) * 0.1
             reconstruction_sum += log_gaussian(x_flat, out_decoder, covar)    # Fixed variance
 
-        if sc_type == 'continuous':
-            orth_sum += OrthogonalProjectionLoss(z_concept[:,:,n], z_sc[:,:,n])
+        #if sc_type == 'continuous':
+            #orth_sum += OrthogonalProjectionLoss(z_concept[:,:,n], z_sc[:,:,n])
 
     reconstruction = reconstruction_sum/n_samples
     orth_loss = orth_sum/n_samples

@@ -12,7 +12,7 @@ model:
   concept_inf: 'rep'   # 'rep' (repetition codes) or 'uncoded'
   sc_type: 'continuous'         # If None, we do not include a side channel
   sc_inf:            # If binary, indicate 'rep' or 'uncoded'. If sc_type='continuous' or sc_type=None, this will be ignored (can be None)
-  sc_dim: 400                 # If sc_type=None, this will be ignored (can be None)
+  sc_dim: 64                 # If sc_type=None, this will be ignored (can be None)
 
 concept_code:
   bits_info: 40
@@ -28,7 +28,7 @@ sc_code:
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 train:
-  n_epochs: 200
+  n_epochs: 1
   batch_size: 128
   lr: 0.00001
   n_samples: 10
@@ -36,7 +36,7 @@ train:
   train_dec: True
   w_concept: 100
   w_orth: 20
-  save: False
+  save: True
   
 gpu: True
 
