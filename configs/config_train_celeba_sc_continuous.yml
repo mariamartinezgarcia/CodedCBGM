@@ -41,7 +41,7 @@ train:
 gpu: True
 
 checkpoint:
-  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_continuous_64_whitening_200_epoch_conduit.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_sc_continuous_64_whitening_wconcept_500_200_epoch_conduit.pt'
 
 log:
   wandb: False
