@@ -17,14 +17,14 @@ model:
 concept_code:
   bits_info: 40
   bits_code: 400
-  root: './repetition_codes/'
+  root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 # This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
 sc_code:
   bits_info: 10
   bits_code: 100
-  root: './repetition_codes/'
+  root: '/home/martinez-garcia/CodedCBGM/repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
 train:
