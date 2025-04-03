@@ -18,6 +18,6 @@ output = logs_cluster/$(Clusterid).$(ProcId).out
 error  = logs_cluster/$(Clusterid).$(ProcId).err
 log    = logs_cluster/$(Clusterid).$(ProcId).log
 
-arguments = main_train.py -c '/home/martinez-garcia/CodedCBGM/configs/config_train_celeba_sc_continuous.yml'
+arguments = main_train.py -c /home/martinez-garcia/CodedCBGM/configs/config_train_celeba_sc_continuous.yml
 
 queue
