@@ -32,7 +32,7 @@ def get_celeba_dataloader(root_dir="./data", batch_size=64, selected_attributes=
     ])
 
     # Load the full CelebA dataset
-    dataset = CelebA(root=root_dir, split=split, download=False, transform=transform)
+    dataset = CelebA(root=root_dir, split=split, download=True, transform=transform)
 
     # Get attribute names
     attr_names = dataset.attr_names[:40]
