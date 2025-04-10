@@ -1,6 +1,6 @@
 dataset:
   name: celeba
-  root: '/export/gts_usuarios/mariamartinezga/data'
+  root: '/home/martinez-garcia/data'
   attr: # If None, we select all
 
 model:
@@ -16,7 +16,7 @@ model:
 
 concept_code:
   bits_info: 40
-  bits_code: 400
+  bits_code: 800
   root: './repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
@@ -30,7 +30,7 @@ sc_code:
 gpu: True
 
 checkpoint:
-  path: '/export/gts_usuarios/mariamartinezga/GitHub/CodedCBGM/checkpoints/celeba_sc_binary_8-80_200_epoch.pt'
+  path: '/home/martinez-garcia/CodedCBGM/checkpoints/celeba_4-800_sc_binary_10-100_wconcept_500_200_epoch_conduit.pt'
 
 log:
   wandb: True
