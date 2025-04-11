@@ -238,7 +238,9 @@ def main():
 
         # W&B
         if wb:
-            wandb.log({"BCE TEST PER CONCEPT": bce_final})
+            data = [[label, val] for (label, val) in zip(attr_names, bce_final)]
+            table = wandb.Table(data=data, columns = ["label", "value"])
+            wandb.log({"bce_per_concept" : wandb.plot.bar(table, "label", "value", title="BCE per concept")})  
             wandb.log({"BCE TEST": torch.mean(bce_final)})
 
     torch.cuda.empty_cache()
