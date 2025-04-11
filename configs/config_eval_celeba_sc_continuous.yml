@@ -1,6 +1,6 @@
 dataset:
   name: celeba
-  root: '/home/martinez-garcia/data'
+  root: '/home/martinez-garcia/data/'
   attr: # If None, we select all
 
 model:
