@@ -22,8 +22,8 @@ concept_code:
 
 # This will be ignored if sc_type='continuous', sc_type=None. Bits of info are already specified in sc_dim
 sc_code:
-  bits_info: 8
-  bits_code: 80
+  bits_info: 10
+  bits_code: 100
   root: './repetition_codes/'
   file: 'default'   # This will be ignored if concept_inf_type='uncoded'.
 
