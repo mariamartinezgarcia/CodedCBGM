@@ -227,14 +227,14 @@ def main():
     # ---- Reconstruction BCE ---- #
     with torch.no_grad():
         #BCE Loss
-        bce = nn.BCELoss(reduction='None')
+        bce = nn.BCELoss(reduction='none')
         bce_sum = 0
         for x, concepts in testloader:
             _, concept_probs, _ = model.forward(x)
             bce_batch = bce(concept_probs, concepts.type(torch.FloatTensor).to(concept_probs.device))
             bce_sum += torch.mean(bce_batch, dim=1)
 
-        bce_final = bce_sum.item()/len(testloader)
+        bce_final = bce_sum.mean().item()
 
         # W&B
         if wb:
