@@ -234,7 +234,7 @@ def main():
             bce_batch = bce(concept_probs, concepts.type(torch.FloatTensor).to(concept_probs.device))
             bce_sum += torch.mean(bce_batch, dim=0)
 
-        bce_final = bce_sum / len(testloader.dataset)
+        bce_final = bce_sum / len(testloader)
 
         # W&B
         if wb:
